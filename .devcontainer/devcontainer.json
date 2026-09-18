@@ -1,0 +1,36 @@
+{
+  "name": "SaludPública Connect - Codespaces",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:1-20-bullseye",
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {
+      "version": "latest",
+      "enableMoby": true
+    }
+  },
+  "forwardPorts": [3000, 3001, 5432, 6379, 8081],
+  "portsAttributes": {
+    "3000": {
+      "label": "Frontend (React Vite)",
+      "onAutoForward": "openBrowser"
+    },
+    "3001": {
+      "label": "Backend (NestJS API)",
+      "onAutoForward": "notify"
+    },
+    "8081": {
+      "label": "Redis Commander UI",
+      "onAutoForward": "notify"
+    }
+  },
+  "postCreateCommand": "docker compose up -d && cd backend && npm install && npx prisma generate && npm run prisma:migrate && npm run prisma:seed && cd ../frontend && npm install",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "Prisma.prisma",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "bradlc.vscode-tailwindcss"
+      ]
+    }
+  }
+}
