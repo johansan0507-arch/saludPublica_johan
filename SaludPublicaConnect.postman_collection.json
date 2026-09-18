@@ -1,0 +1,292 @@
+{
+  "info": {
+    "name": "SaludPública Connect - API REST",
+    "_postman_id": "8a32b1e4-9844-48f1-8f47-c0e81c7e9921",
+    "description": "Colección completa de endpoints para el Sistema de Gestión de Turnos Públicos (SENA ADSO - Ficha 3139687)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3001",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "adminToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "cancelToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "slotId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "doctorId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Autenticación",
+      "item": [
+        {
+          "name": "Login Administrador",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.token) {",
+                  "    pm.collectionVariables.set('adminToken', jsonData.token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@saludpublica.gov.co\",\n  \"password\": \"Admin123!\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] }
+          }
+        },
+        {
+          "name": "Login Paciente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.token) {",
+                  "    pm.collectionVariables.set('token', jsonData.token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"paciente@saludpublica.gov.co\",\n  \"password\": \"Paciente123!\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] }
+          }
+        },
+        {
+          "name": "Registro de Nuevo Paciente",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Mariana López\",\n  \"email\": \"mariana.lopez@saludpublica.gov.co\",\n  \"password\": \"Paciente123!\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/auth/register", "host": ["{{baseUrl}}"], "path": ["auth", "register"] }
+          }
+        },
+        {
+          "name": "Obtener Perfil (JWT)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/auth/profile", "host": ["{{baseUrl}}"], "path": ["auth", "profile"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Especialidades",
+      "item": [
+        {
+          "name": "Listar Especialidades Médicas",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/specialties", "host": ["{{baseUrl}}"], "path": ["specialties"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Médicos",
+      "item": [
+        {
+          "name": "Listar Médicos",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.length > 0) {",
+                  "    pm.collectionVariables.set('doctorId', jsonData[0].id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/doctors", "host": ["{{baseUrl}}"], "path": ["doctors"] }
+          }
+        },
+        {
+          "name": "Crear Médico (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Dr. Leonardo Daza\",\n  \"email\": \"leonardo.daza@saludpublica.gov.co\",\n  \"password\": \"Doctor123!\",\n  \"licenseNumber\": \"MP-1122-MG\",\n  \"specialtyId\": \"00000000-0000-0000-0000-000000000000\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/doctors", "host": ["{{baseUrl}}"], "path": ["doctors"] }
+          }
+        },
+        {
+          "name": "Generar Slots Automáticos de 20 min (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"startDate\": \"2026-09-22\",\n  \"endDate\": \"2026-09-25\",\n  \"startHour\": 8,\n  \"endHour\": 12,\n  \"slotDurationMinutes\": 20\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/doctors/{{doctorId}}/slots/generate", "host": ["{{baseUrl}}"], "path": ["doctors", "{{doctorId}}", "slots", "generate"] }
+          }
+        },
+        {
+          "name": "Listar Slots Disponibles de un Médico",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.length > 0) {",
+                  "    pm.collectionVariables.set('slotId', jsonData[0].id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/doctors/{{doctorId}}/slots?status=AVAILABLE", "host": ["{{baseUrl}}"], "path": ["doctors", "{{doctorId}}", "slots"], "query": [{ "key": "status", "value": "AVAILABLE" }] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Turnos (Appointments)",
+      "item": [
+        {
+          "name": "Listar Turnos del Usuario",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/appointments", "host": ["{{baseUrl}}"], "path": ["appointments"] }
+          }
+        },
+        {
+          "name": "Reservar Turno (Atómico / Anti Race Conditions)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.cancelToken) {",
+                  "    pm.collectionVariables.set('cancelToken', jsonData.cancelToken);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"slotId\": \"{{slotId}}\",\n  \"notes\": \"Presento molestias lumbares recurrentes.\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/appointments", "host": ["{{baseUrl}}"], "path": ["appointments"] }
+          }
+        },
+        {
+          "name": "Simulación Race Condition (Reintentar mismo slot)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"slotId\": \"{{slotId}}\",\n  \"notes\": \"Intento concurrente simultáneo\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/appointments", "host": ["{{baseUrl}}"], "path": ["appointments"] }
+          }
+        },
+        {
+          "name": "Métricas del Sistema (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/appointments/stats", "host": ["{{baseUrl}}"], "path": ["appointments", "stats"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Turnos Públicos (Acceso por Token)",
+      "item": [
+        {
+          "name": "Consultar Turno Sin Login",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/appointments-public/token/{{cancelToken}}", "host": ["{{baseUrl}}"], "path": ["appointments-public", "token", "{{cancelToken}}"] }
+          }
+        },
+        {
+          "name": "Cancelar Turno Desde Email",
+          "request": {
+            "method": "POST",
+            "url": { "raw": "{{baseUrl}}/appointments-public/cancel/{{cancelToken}}", "host": ["{{baseUrl}}"], "path": ["appointments-public", "cancel", "{{cancelToken}}"] }
+          }
+        }
+      ]
+    }
+  ]
+}
