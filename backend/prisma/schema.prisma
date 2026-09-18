@@ -1,0 +1,93 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  PATIENT
+  DOCTOR
+  ADMIN
+}
+
+enum SlotStatus {
+  AVAILABLE
+  BOOKED
+  BLOCKED
+}
+
+enum AppointmentStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+}
+
+model User {
+  id           String        @id @default(uuid())
+  email        String        @unique
+  password     String
+  name         String
+  role         Role          @default(PATIENT)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  doctor       Doctor?
+  appointments Appointment[]
+
+  @@map("users")
+}
+
+model Specialty {
+  id           String        @id @default(uuid())
+  name         String        @unique
+  description  String?
+  doctors      Doctor[]
+  appointments Appointment[]
+
+  @@map("specialties")
+}
+
+model Doctor {
+  id            String    @id @default(uuid())
+  userId        String    @unique
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  specialtyId   String
+  specialty     Specialty @relation(fields: [specialtyId], references: [id])
+  licenseNumber String
+  slots         Slot[]
+
+  @@map("doctors")
+}
+
+model Slot {
+  id          String       @id @default(uuid())
+  doctorId    String
+  doctor      Doctor       @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  startTime   DateTime
+  endTime     DateTime
+  status      SlotStatus   @default(AVAILABLE)
+  version     Int          @default(0)
+  appointment Appointment?
+
+  @@index([doctorId, startTime])
+  @@map("slots")
+}
+
+model Appointment {
+  id          String            @id @default(uuid())
+  patientId   String
+  patient     User              @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  slotId      String            @unique
+  slot        Slot              @relation(fields: [slotId], references: [id], onDelete: Cascade)
+  specialtyId String
+  specialty   Specialty         @relation(fields: [specialtyId], references: [id])
+  cancelToken String            @unique @default(uuid())
+  status      AppointmentStatus @default(SCHEDULED)
+  notes       String?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  @@map("appointments")
+}
